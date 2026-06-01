@@ -22,6 +22,7 @@ apt update && apt upgrade -y && apt install -y \
     gnome-text-editor \
     gnome-terminal \
     gnome-calculator \
+    hercules \
     zsh \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
