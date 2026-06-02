@@ -22,6 +22,8 @@ apt update && apt upgrade -y && apt install -y \
     gimp \
     vlc \
     pspp \
+    loupe \
+    papers \
     openjdk-21-jdk \
     python3 \
     python3-pip \
