@@ -33,6 +33,7 @@ apt update && apt upgrade -y && apt install -y \
     zsh \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
+    android-sdk-platform-tools \
     nmap
 
 archive=".backup-$(date +'%Y%m%d%H%M%S')"
