@@ -28,8 +28,9 @@ apt update && apt upgrade -y && apt install -y \
     python3-venv \
     python3-tk \
     plymouth-themes \
+    gnome-software \
     gnome-text-editor \
-    gnome-terminal \
+    gnome-console \
     gnome-calculator \
     zsh \
     zsh-syntax-highlighting \
