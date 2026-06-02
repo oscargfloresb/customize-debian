@@ -33,9 +33,9 @@ THEME_MODE=auto
 # Run 'spectrum_ls' in your terminal to see all available colors
 # These are the default (dark) colors; light mode overrides them below
 FGPROMPT_USER=245
-FGPROMPT_ROOT=245
+FGPROMPT_ROOT=231
 FRAMEPROMPT_USER=240
-FRAMEPROMPT_ROOT=240
+FRAMEPROMPT_ROOT=230
 VENVPROMPT_COLOR=white
 VCSPROMPT_COLOR=167
 SSHPROMPT_COLOR=yellow
