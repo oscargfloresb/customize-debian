@@ -4,6 +4,13 @@ apt update && apt upgrade -y && apt install -y \
     linux-headers-$(uname -r) \
     firmware-linux \
     build-essential \
+    checkinstall\
+    libtool \
+    cmake \
+    pkg-config \
+    flex \
+    bison \
+    libbz2-dev \
     mesa-utils \
     net-tools \
     gdm3 \
@@ -11,6 +18,7 @@ apt update && apt upgrade -y && apt install -y \
     wget \
     curl \
     git \
+    c3270 \
     gimp \
     vlc \
     openjdk-21-jdk \
@@ -22,7 +30,6 @@ apt update && apt upgrade -y && apt install -y \
     gnome-text-editor \
     gnome-terminal \
     gnome-calculator \
-    hercules \
     zsh \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
@@ -74,7 +81,8 @@ for url in \
 "https://download.anydesk.com/linux/anydesk_8.0.2-1_amd64.deb" \
 "https://download.virtualbox.org/virtualbox/7.2.8/virtualbox-7.2_7.2.8-173730~Debian~trixie_amd64.deb" \
 "https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb" \
-"https://vscode.download.prss.microsoft.com/dbazure/download/stable/8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e/code_1.122.1-1780040850_amd64.deb"
+"https://vscode.download.prss.microsoft.com/dbazure/download/stable/8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e/code_1.122.1-1780040850_amd64.deb" \
+"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
 do
     file="$(basename "${url%%\?*}")"
 
