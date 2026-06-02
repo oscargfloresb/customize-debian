@@ -21,6 +21,7 @@ apt update && apt upgrade -y && apt install -y \
     c3270 \
     gimp \
     vlc \
+    pspp \
     openjdk-21-jdk \
     python3 \
     python3-pip \
