@@ -33,9 +33,9 @@ THEME_MODE=auto
 # Run 'spectrum_ls' in your terminal to see all available colors
 # These are the default (dark) colors; light mode overrides them below
 FGPROMPT_USER=245
-FGPROMPT_ROOT=231
+FGPROMPT_ROOT=167
 FRAMEPROMPT_USER=240
-FRAMEPROMPT_ROOT=230
+FRAMEPROMPT_ROOT=124
 VENVPROMPT_COLOR=white
 VCSPROMPT_COLOR=167
 SSHPROMPT_COLOR=yellow
@@ -74,10 +74,10 @@ fi
 
 # Override colors for light terminal backgrounds
 if [[ "$_resolved_theme_mode" == light ]]; then
-    FGPROMPT_USER=025
-    FGPROMPT_ROOT=160
-    FRAMEPROMPT_USER=030
-    FRAMEPROMPT_ROOT=025
+    FGPROMPT_USER=245
+    FGPROMPT_ROOT=167
+    FRAMEPROMPT_USER=240
+    FRAMEPROMPT_ROOT=124
     VENVPROMPT_COLOR=053
     VCSPROMPT_COLOR=024
     SSHPROMPT_COLOR=166
