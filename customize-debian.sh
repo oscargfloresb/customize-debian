@@ -18,6 +18,7 @@ apt update && apt upgrade -y && apt install -y \
     wget \
     curl \
     git \
+    gh \
     c3270 \
     gimp \
     vlc \
