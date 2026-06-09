@@ -194,6 +194,17 @@ EOF
 
 dconf update
 
+###############################################################################
+# GNOME Window Buttons (Global Policy)
+###############################################################################
+
+cat > /etc/dconf/db/local.d/01-window-buttons <<'EOF'
+[org/gnome/desktop/wm/preferences]
+button-layout=':minimize,maximize,close'
+EOF
+
+dconf update
+
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
