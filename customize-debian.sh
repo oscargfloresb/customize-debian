@@ -4,7 +4,7 @@ apt update && apt upgrade -y && apt install -y \
     linux-headers-$(uname -r) \
     firmware-linux \
     build-essential \
-    checkinstall\
+    checkinstall \
     libtool \
     cmake \
     pkg-config \
@@ -35,6 +35,8 @@ apt update && apt upgrade -y && apt install -y \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
     android-sdk-platform-tools \
+    gnome-shell-extension-desktop-icons-ng \
+    dconf-cli \
     nmap
 
 archive=".backup-$(date +'%Y%m%d%H%M%S')"
@@ -164,6 +166,33 @@ for home in /home/*; do
     # Set default shell
     chsh -s /usr/bin/zsh "$user"
 done
+
+###############################################################################
+# GNOME Desktop Icons (Global Policy)
+###############################################################################
+
+mkdir -p /etc/dconf/profile
+mkdir -p /etc/dconf/db/local.d
+
+cat > /etc/dconf/profile/user <<'EOF'
+user-db:user
+system-db:local
+EOF
+
+cat > /etc/dconf/db/local.d/00-shell-extensions <<'EOF'
+[org/gnome/shell]
+enabled-extensions=['ding@rastersoft.com']
+EOF
+
+cat > /etc/dconf/db/local.d/00-desktop-icons <<'EOF'
+[org/gnome/shell/extensions/ding]
+show-home=true
+show-trash=true
+show-volumes=true
+show-network-volumes=true
+EOF
+
+dconf update
 
 usermod -aG sudo oky
 usermod -aG vboxusers oky
