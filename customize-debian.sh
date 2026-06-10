@@ -35,6 +35,8 @@ apt update && apt upgrade -y && apt install -y \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
     android-sdk-platform-tools \
+    gnome-shell-extension-prefs \
+    gnome-shell-extension-dash-to-panel \
     gnome-shell-extension-desktop-icons-ng \
     dconf-cli \
     nmap
@@ -168,39 +170,42 @@ for home in /home/*; do
 done
 
 ###############################################################################
-# GNOME Desktop Icons (Global Policy)
+# GNOME Desktop Configuration (Windows 11 Style)
 ###############################################################################
 
 mkdir -p /etc/dconf/profile
 mkdir -p /etc/dconf/db/local.d
+mkdir -p /etc/dconf/db/local.d/locks
 
 cat > /etc/dconf/profile/user <<'EOF'
 user-db:user
 system-db:local
 EOF
 
-cat > /etc/dconf/db/local.d/00-shell-extensions <<'EOF'
+cat > /etc/dconf/db/local.d/00-gnome-desktop <<'EOF'
 [org/gnome/shell]
-enabled-extensions=['ding@rastersoft.com']
-EOF
+enabled-extensions=['ding@rastersoft.com','dash-to-panel@jderose9.github.com']
 
-cat > /etc/dconf/db/local.d/00-desktop-icons <<'EOF'
 [org/gnome/shell/extensions/ding]
 show-home=true
 show-trash=true
 show-volumes=true
 show-network-volumes=true
-EOF
 
-dconf update
+[org/gnome/shell/extensions/dash-to-panel]
+group-apps=true
+panel-positions='{"0":"BOTTOM"}'
+panel-sizes='{"0":44}'
+show-appmenu=false
+show-showdesktop-button=true
+multi-monitors=false
 
-###############################################################################
-# GNOME Window Buttons (Global Policy)
-###############################################################################
-
-cat > /etc/dconf/db/local.d/01-window-buttons <<'EOF'
 [org/gnome/desktop/wm/preferences]
 button-layout=':minimize,maximize,close'
+EOF
+
+cat > /etc/dconf/db/local.d/locks/dash-to-panel <<'EOF'
+/org/gnome/shell/extensions/dash-to-panel/multi-monitors
 EOF
 
 dconf update
