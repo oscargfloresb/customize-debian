@@ -83,7 +83,7 @@ rm -f burpsuite_linux_v2026_4_3.sh
 for url in \
 "https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.11.3.deb?_gl=1*faa42*_ga*Nzg4Mzc4MDUyLjE3ODAxOTQ5ODM.*_ga_KLWZNM1QZW*czE3ODAxOTQ5ODMkbzEkZzEkdDE3ODAxOTUyMTEkajEwJGwwJGgw" \
 "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" \
-"https://wdl1.pcfg.cache.wpscdn.com/wpsdl/wpsoffice/download/linux/11723/wps-office_11.1.0.11723.XA_amd64.deb" \
+"https://github.com/ONLYOFFICE/DesktopEditors/releases/latest/download/onlyoffice-desktopeditors_amd64.deb" \
 "https://cdn.zoom.us/prod/7.0.5.3034/zoom_amd64.deb" \
 "https://download.anydesk.com/linux/anydesk_8.0.2-1_amd64.deb" \
 "https://download.virtualbox.org/virtualbox/7.2.8/virtualbox-7.2_7.2.8-173730~Debian~trixie_amd64.deb" \
@@ -174,6 +174,11 @@ done
 # GNOME Desktop Configuration (Windows 11 Style)
 ###############################################################################
 
+mkdir -p /usr/share/backgrounds/custom
+
+wget -O /usr/share/backgrounds/custom/wallpaper.jpg \
+https://raw.githubusercontent.com/oscargfloresb/customize-debian/main/wallpaper.jpg
+
 mkdir -p /etc/dconf/profile
 mkdir -p /etc/dconf/db/local.d
 mkdir -p /etc/dconf/db/local.d/locks
@@ -206,6 +211,13 @@ clock-format='24h'
 clock-show-date=true
 clock-show-weekday=false
 clock-show-seconds=false
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/custom/wallpaper.jpg'
+picture-uri-dark='file:///usr/share/backgrounds/custom/wallpaper.jpg'
+picture-options='zoom'
+primary-color='#000000'
+secondary-color='#000000'
 
 [org/gnome/desktop/session]
 idle-delay=uint32 300
