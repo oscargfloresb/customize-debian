@@ -13,6 +13,7 @@ apt update && apt upgrade -y && apt install -y \
     libbz2-dev \
     mesa-utils \
     net-tools \
+    libsecret-tools \
     gdm3 \
     sudo \
     wget \
