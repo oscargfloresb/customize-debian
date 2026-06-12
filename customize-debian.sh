@@ -212,6 +212,9 @@ clock-show-date=true
 clock-show-weekday=false
 clock-show-seconds=false
 
+[org/gnome/Console]
+theme='auto'
+
 [org/gnome/desktop/background]
 picture-uri='file:///usr/share/backgrounds/custom/wallpaper.jpg'
 picture-uri-dark='file:///usr/share/backgrounds/custom/wallpaper.jpg'
@@ -246,3 +249,6 @@ usermod -aG vboxusers oky
 usermod -aG dialout oky
 
 ln -s /usr/lib/x86_64-linux-gnu/libtiff.so.6 /usr/lib/x86_64-linux-gnu/libtiff.so.5
+
+DEBIAN_FRONTEND=noninteractive apt update && \
+DEBIAN_FRONTEND=noninteractive apt upgrade -y
