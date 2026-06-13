@@ -251,5 +251,3 @@ dconf update
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
-
-# Fin de la personalizacion del sistema.
