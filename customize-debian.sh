@@ -3,45 +3,37 @@
 apt update && apt upgrade -y && apt install -y \
     linux-headers-$(uname -r) \
     firmware-linux \
-    build-essential \
-    checkinstall \
-    libtool \
-    cmake \
-    pkg-config \
-    flex \
-    bison \
-    libbz2-dev \
+    sudo \
+    plymouth-themes \
     mesa-utils \
     net-tools \
     libsecret-tools \
-    gdm3 \
-    sudo \
-    wget \
-    curl \
-    git \
-    gh \
-    c3270 \
-    gimp \
-    vlc \
+    dconf-cli \
     openjdk-21-jdk \
     python3 \
     python3-pip \
     python3-venv \
     python3-tk \
-    plymouth-themes \
-    gnome-text-editor \
-    gnome-console \
-    gnome-calculator \
+    build-essential \
     zsh \
     zsh-syntax-highlighting \
     zsh-autosuggestions \
-    android-sdk-platform-tools \
+    wget \
+    curl \
+    git \
+    gh \
+    gdm3 \
+    gnome-text-editor \
+    gnome-console \
+    gnome-calculator \
     gnome-shell-extension-prefs \
     gnome-shell-extension-dash-to-panel \
     gnome-shell-extension-desktop-icons-ng \
     gnome-shell-extension-tiling-assistant \
-    dconf-cli \
-    nmap
+    gimp \
+    papers \
+    loupe \
+    showtime
 
 archive=".backup-$(date +'%Y%m%d%H%M%S')"
 
@@ -70,49 +62,72 @@ EOF
 
 cd /tmp
 
-curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && \
-  chmod 755 msfinstall && \
-  ./msfinstall
+wget -qO- https://dl.google.com/linux/linux_signing_key.pub \
+    | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
 
-curl "https://portswigger.net/burp/releases/download?product=desktop&version=2026.4.3&type=Linux" > burpsuite_linux_v2026_4_3.sh && \
-  chmod 755 burpsuite_linux_v2026_4_3.sh && \
-  ./burpsuite_linux_v2026_4_3.sh -q
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] \
+https://dl.google.com/linux/chrome/deb/ stable main" \
+> /etc/apt/sources.list.d/google-chrome.list
 
-rm -f msfinstall
-rm -f burpsuite_linux_v2026_4_3.sh
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc \
+    | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
 
-for url in \
-"https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.11.3.deb?_gl=1*faa42*_ga*Nzg4Mzc4MDUyLjE3ODAxOTQ5ODM.*_ga_KLWZNM1QZW*czE3ODAxOTQ5ODMkbzEkZzEkdDE3ODAxOTUyMTEkajEwJGwwJGgw" \
-"https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb" \
-"https://github.com/ONLYOFFICE/DesktopEditors/releases/latest/download/onlyoffice-desktopeditors_amd64.deb" \
-"https://cdn.zoom.us/prod/7.0.5.3034/zoom_amd64.deb" \
-"https://download.anydesk.com/linux/anydesk_8.0.2-1_amd64.deb" \
-"https://download.virtualbox.org/virtualbox/7.2.8/virtualbox-7.2_7.2.8-173730~Debian~trixie_amd64.deb" \
-"https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb" \
-"https://vscode.download.prss.microsoft.com/dbazure/download/stable/8761a5560cfd65fdd19ce7e2bd18dab5c0a4d84e/code_1.122.1-1780040850_amd64.deb" \
-"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
-do
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] \
+https://packages.microsoft.com/repos/code stable main" \
+> /etc/apt/sources.list.d/vscode.list
+
+wget -qO- https://www.virtualbox.org/download/oracle_vbox_2016.asc \
+    | gpg --dearmor -o /etc/apt/keyrings/virtualbox.gpg
+
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/virtualbox.gpg] \
+https://download.virtualbox.org/virtualbox/debian trixie contrib" \
+> /etc/apt/sources.list.d/virtualbox.list
+
+wget -qO- https://keys.anydesk.com/repos/DEB-GPG-KEY \
+    | gpg --dearmor -o /etc/apt/keyrings/anydesk.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/anydesk.gpg] \
+http://deb.anydesk.com/ all main" \
+> /etc/apt/sources.list.d/anydesk.list
+
+wget -qO- https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE \
+    | gpg --dearmor -o /etc/apt/keyrings/onlyoffice.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/onlyoffice.gpg] \
+https://download.onlyoffice.com/repo/debian squeeze main" \
+> /etc/apt/sources.list.d/onlyoffice.list
+
+apt update && apt install -y \
+    google-chrome-stable \
+    onlyoffice-desktopeditors \
+    code \
+    virtualbox-7.2 \
+    anydesk
+
+urls=(
+    "https://zoom.us/client/latest/zoom_amd64.deb"
+    "https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb"
+)
+
+for url in "${urls[@]}"; do
     file="$(basename "${url%%\?*}")"
 
     wget -4 --inet4-only --timeout=30 --tries=3 --retry-connrefused \
-        -O "${file}" "${url}"
+        -O "${file}" "${url}" || continue
 
     DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
-    DEBIAN_FRONTEND=noninteractive apt install -f -y
+        DEBIAN_FRONTEND=noninteractive apt install -f -y
 
     rm -f "${file}"
 done
 
-# Install Oh-My-Zsh globally in /etc/skel
 if [[ ! -d /etc/skel/.oh-my-zsh ]]; then
     git clone https://github.com/ohmyzsh/ohmyzsh.git /etc/skel/.oh-my-zsh
 fi
 
-# Download Debian Shell theme
 wget -O /etc/skel/.oh-my-zsh/themes/debian-shell.zsh-theme \
     https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/debian-shell.zsh-theme
 
-# Default .zshrc for new users
 cat > /etc/skel/.zshrc <<'EOF'
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -128,7 +143,6 @@ source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 EOF
 
-# Apply Debian Shell to root
 if [[ ! -d /root/.oh-my-zsh ]]; then
     cp -r /etc/skel/.oh-my-zsh /root/
 fi
@@ -142,38 +156,27 @@ cp /etc/skel/.oh-my-zsh/themes/debian-shell.zsh-theme \
 
 chsh -s /usr/bin/zsh root
 
-# Apply Debian Shell to existing users
 for home in /home/*; do
     user="$(basename "$home")"
 
-    # Skip invalid directories
     [[ ! -d "$home" ]] && continue
 
-    # Copy Oh-My-Zsh if missing
     if [[ ! -d "$home/.oh-my-zsh" ]]; then
         cp -r /etc/skel/.oh-my-zsh "$home/"
     fi
 
-    # Copy .zshrc
     cp /etc/skel/.zshrc "$home/.zshrc"
 
-    # Ensure theme exists
     mkdir -p "$home/.oh-my-zsh/themes"
 
     cp /etc/skel/.oh-my-zsh/themes/debian-shell.zsh-theme \
        "$home/.oh-my-zsh/themes/"
 
-    # Set ownership
     chown -R "$user:$user" "$home/.oh-my-zsh"
     chown "$user:$user" "$home/.zshrc"
 
-    # Set default shell
     chsh -s /usr/bin/zsh "$user"
 done
-
-###############################################################################
-# GNOME Desktop Configuration (Windows 11 Style)
-###############################################################################
 
 mkdir -p /usr/share/backgrounds/custom
 
@@ -248,8 +251,3 @@ dconf update
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
-
-ln -s /usr/lib/x86_64-linux-gnu/libtiff.so.6 /usr/lib/x86_64-linux-gnu/libtiff.so.5
-
-DEBIAN_FRONTEND=noninteractive apt update && \
-DEBIAN_FRONTEND=noninteractive apt upgrade -y
