@@ -92,6 +92,63 @@ DEBIAN_FRONTEND=noninteractive apt install -f -y
 rm -f "${file}"
 done
 
+github_install_latest_deb() {
+
+    local owner repo match
+    local arch url file
+
+    arch="$(dpkg --print-architecture)"
+
+    while (( $# >= 3 )); do
+
+        owner="$1"
+        repo="$2"
+        match="$3"
+
+        shift 3
+
+        echo "Descargando ${owner}/${repo}..."
+
+        url=$(
+            curl -fsSL "https://api.github.com/repos/${owner}/${repo}/releases/latest" |
+            jq -r \
+                --arg arch "$arch" \
+                --arg match "$match" '
+                .assets[]
+                | select(
+                    (.name | endswith(".deb")) and
+                    (.name | contains($match)) and
+                    (
+                        (.name | contains("_" + $arch + ".deb")) or
+                        (.name | contains("-" + $arch + ".deb")) or
+                        (.name | contains("_all.deb"))
+                    )
+                )
+                | .browser_download_url
+                ' | head -n1
+        )
+
+        if [[ -z "$url" ]]; then
+            echo "No se encontró un paquete para ${owner}/${repo}"
+            continue
+        fi
+
+        file="/tmp/$(basename "$url")"
+
+        wget -q --show-progress -O "$file" "$url"
+
+        DEBIAN_FRONTEND=noninteractive dpkg -i "$file" || \
+        DEBIAN_FRONTEND=noninteractive apt install -fy
+
+        rm -f "$file"
+
+    done
+}
+
+github_install_latest_deb \
+    raspberrypi rpi-imager rpi-imager_ \
+    obsidianmd obsidian-releases obsidian
+
 if [[ ! -d /etc/skel/.oh-my-zsh ]]; then
 git clone https://github.com/ohmyzsh/ohmyzsh.git /etc/skel/.oh-my-zsh
 fi
