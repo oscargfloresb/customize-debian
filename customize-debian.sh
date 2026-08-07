@@ -68,12 +68,20 @@ echo "deb [signed-by=/etc/apt/keyrings/onlyoffice.gpg] \
 https://download.onlyoffice.com/repo/debian squeeze main" \
 > /etc/apt/sources.list.d/onlyoffice.list
 
+wget -qO- https://downloads.claude.ai/claude-desktop/key.asc \
+| gpg --dearmor -o /etc/apt/keyrings/claude-desktop.gpg
+
+echo "deb [signed-by=/etc/apt/keyrings/claude-desktop.gpg] \
+https://downloads.claude.ai/claude-desktop/apt/stable stable main" \
+> /etc/apt/sources.list.d/claude-desktop.list
+
 apt update && apt install -y \
 google-chrome-stable \
 onlyoffice-desktopeditors \
 code \
 virtualbox-7.2 \
-anydesk
+anydesk \
+claude-desktop
 
 urls=(
 "https://zoom.us/client/latest/zoom_amd64.deb"
