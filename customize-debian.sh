@@ -284,6 +284,16 @@ cat > /etc/udisks2/mount_options.conf <<'EOF'
 ntfs_drivers=ntfs
 EOF
 
+mkdir -p /etc/opt/chrome/policies/managed
+
+cat > /etc/opt/chrome/policies/managed/extensions.json <<'EOF'
+{
+  "ExtensionInstallForcelist": [
+    "fcoeoabgfenejglbffodgkkbkcdhcgfn"
+  ]
+}
+EOF
+
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
