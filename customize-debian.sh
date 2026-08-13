@@ -94,6 +94,10 @@ for url in "${urls[@]}"; do
 
     if [[ "${file}" == "CiscoPacketTracer822_amd64_signed.deb" ]]; then
 
+        # A diferencia de Zoom/NetBeans (que usan "|| continue" porque son
+        # opcionales), la descarga de Packet Tracer es obligatoria: si
+        # falla, se detiene TODO el script en vez de seguir en silencio
+        # sin Packet Tracer.
         if ! wget -4 --inet4-only --no-check-certificate \
             --timeout=30 --tries=3 --retry-connrefused \
             -O "${file}" "${url}"; then
@@ -114,17 +118,29 @@ for url in "${urls[@]}"; do
         echo "PacketTracer_822_amd64 PacketTracer_822_amd64/accept-eula boolean true" \
             | debconf-set-selections
 
+        # libgl1-mesa-glx no existe en trixie (fue reemplazado por libgl1).
+        # --ignore-depends solo suprime la verificación durante ESTA
+        # instalación; la dependencia rota queda registrada, y cualquier
+        # "apt install -f" posterior (de cualquier otro paquete del script)
+        # no puede satisfacerla y termina eliminando Packet Tracer.
+        # En vez de ignorarla, la corregimos dentro del propio .deb.
         rm -rf /tmp/packettracer-extract
         dpkg-deb -R "${file}" /tmp/packettracer-extract
 
         pt_pkgname="$(dpkg-deb -f "${file}" Package)"
 
+        # Reemplaza la dependencia inexistente por la que realmente
+        # provee ese contenido en trixie.
         sed -i 's/libgl1-mesa-glx/libgl1/g' \
             /tmp/packettracer-extract/DEBIAN/control
 
         rm -f /tmp/packettracer-fixed.deb
         dpkg-deb -b /tmp/packettracer-extract /tmp/packettracer-fixed.deb
 
+        # Instalar vía apt (no dpkg -i) para que resuelva del repo
+        # cualquier otra dependencia real que sí falte. Igual que la
+        # descarga, esta instalación es obligatoria: si falla, se detiene
+        # el script en vez de continuar como si nada.
         DEBIAN_FRONTEND=noninteractive \
         apt-get install -y /tmp/packettracer-fixed.deb \
             || { echo "ERROR: apt-get install de Packet Tracer falló." >&2; \
@@ -135,6 +151,8 @@ for url in "${urls[@]}"; do
 
         if dpkg-query -W -f='${Status}' "${pt_pkgname}" 2>/dev/null \
             | grep -q "install ok installed"; then
+            # Congelarlo: ningún "apt install -f" posterior en el resto
+            # del script podrá desinstalarlo automáticamente.
             apt-mark hold "${pt_pkgname}"
         else
             echo "ERROR: Packet Tracer no quedó instalado correctamente." >&2
@@ -360,6 +378,14 @@ pt_check="${pt_pkgname:-packettracer}"
 if dpkg-query -W -f='${Status}' "${pt_check}" 2>/dev/null \
     | grep -q "install ok installed"; then
     echo "OK: Packet Tracer sigue instalado al finalizar el script."
+
+    if apt-mark showhold | grep -qx "${pt_check}"; then
+        echo "OK: Packet Tracer sigue en hold (protegido)."
+    else
+        echo "ADVERTENCIA: Packet Tracer está instalado, pero ya NO está en hold." >&2
+        echo "Alguna operación de apt pudo haberlo quitado; vuelve a fijarlo con:" >&2
+        echo "  apt-mark hold ${pt_check}" >&2
+    fi
 else
     echo "ERROR: Packet Tracer NO está instalado al finalizar el script." >&2
     echo "Revisa /var/log/apt/history.log para ver en qué paso se eliminó." >&2
