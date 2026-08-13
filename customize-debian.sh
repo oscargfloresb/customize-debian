@@ -111,15 +111,41 @@ for url in "${urls[@]}"; do
         echo "PacketTracer_822_amd64 PacketTracer_822_amd64/accept-eula boolean true" \
             | debconf-set-selections
 
+        # libgl1-mesa-glx no existe en trixie (fue reemplazado por libgl1).
+        # --ignore-depends solo suprime la verificación durante ESTA
+        # instalación; la dependencia rota queda registrada, y cualquier
+        # "apt install -f" posterior (de cualquier otro paquete del script)
+        # no puede satisfacerla y termina eliminando Packet Tracer.
+        # En vez de ignorarla, la corregimos dentro del propio .deb.
+        rm -rf /tmp/packettracer-extract
+        dpkg-deb -R "${file}" /tmp/packettracer-extract
+
+        pt_pkgname="$(dpkg-deb -f "${file}" Package)"
+
+        # Reemplaza la dependencia inexistente por la que realmente
+        # provee ese contenido en trixie.
+        sed -i 's/libgl1-mesa-glx/libgl1/g' \
+            /tmp/packettracer-extract/DEBIAN/control
+
+        rm -f /tmp/packettracer-fixed.deb
+        dpkg-deb -b /tmp/packettracer-extract /tmp/packettracer-fixed.deb
+
+        # Instalar vía apt (no dpkg -i) para que resuelva del repo
+        # cualquier otra dependencia real que sí falte.
         DEBIAN_FRONTEND=noninteractive \
-        dpkg -i --ignore-depends=libgl1-mesa-glx "${file}" || true
+        apt-get install -y /tmp/packettracer-fixed.deb
 
-        DEBIAN_FRONTEND=noninteractive apt-get install -f -y
+        rm -rf /tmp/packettracer-extract /tmp/packettracer-fixed.deb
 
-        if ! dpkg -s packettracer &>/dev/null && ! dpkg -l | grep -qi packettracer; then
+        if dpkg-query -W -f='${Status}' "${pt_pkgname}" 2>/dev/null \
+            | grep -q "install ok installed"; then
+            # Congelarlo: ningún "apt install -f" posterior en el resto
+            # del script podrá desinstalarlo automáticamente.
+            apt-mark hold "${pt_pkgname}"
+        else
             echo "ADVERTENCIA: Packet Tracer no quedó instalado correctamente." >&2
             echo "Dependencias declaradas por el .deb:" >&2
-            dpkg -I "${file}" | sed -n '/Depends/p' >&2
+            dpkg-deb -f "${file}" Depends >&2
         fi
 
     else
@@ -333,3 +359,10 @@ EOF
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
+
+if dpkg -l | grep -qi packettracer; then
+    echo "OK: Packet Tracer sigue instalado al finalizar el script."
+else
+    echo "ERROR: Packet Tracer NO está instalado al finalizar el script." >&2
+    echo "Revisa /var/log/apt/history.log para ver en qué paso se eliminó." >&2
+fi
