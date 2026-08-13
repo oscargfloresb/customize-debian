@@ -114,15 +114,8 @@ for url in "${urls[@]}"; do
         DEBIAN_FRONTEND=noninteractive \
         dpkg -i --ignore-depends=libgl1-mesa-glx "${file}" || true
 
-        # dpkg -i above will leave the package "half-installed" if any
-        # dependency besides libgl1-mesa-glx is missing. Without fixing
-        # that immediately, a LATER apt install/upgrade in this script
-        # will see packettracer as broken and remove it to resolve
-        # dependencies system-wide. Fix it right here instead.
         DEBIAN_FRONTEND=noninteractive apt-get install -f -y
 
-        # Confirm it actually ended up installed; if not, don't silently
-        # continue as if it worked.
         if ! dpkg -s packettracer &>/dev/null && ! dpkg -l | grep -qi packettracer; then
             echo "ADVERTENCIA: Packet Tracer no quedó instalado correctamente." >&2
             echo "Dependencias declaradas por el .deb:" >&2
