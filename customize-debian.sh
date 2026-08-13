@@ -86,12 +86,13 @@ claude-desktop
 urls=(
 "https://zoom.us/client/latest/zoom_amd64.deb"
 "https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb"
+"https://dca.ufrn.br/~viegas/disciplinas/DCA3605/files/Simulador/822/CiscoPacketTracer822_amd64_signed.deb"
 )
 
 for url in "${urls[@]}"; do
 file="$(basename "${url%%\?*}")"
 
-wget -4 --inet4-only --timeout=30 --tries=3 --retry-connrefused \
+wget -4 --inet4-only --no-check-certificate --timeout=30 --tries=3 --retry-connrefused \
 -O "${file}" "${url}" || continue
 
 DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
