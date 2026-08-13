@@ -84,21 +84,48 @@ anydesk \
 claude-desktop
 
 urls=(
-"https://zoom.us/client/latest/zoom_amd64.deb"
-"https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb"
-"https://dca.ufrn.br/~viegas/disciplinas/DCA3605/files/Simulador/822/CiscoPacketTracer822_amd64_signed.deb"
+    "https://zoom.us/client/latest/zoom_amd64.deb"
+    "https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb"
+    "https://dca.ufrn.br/~viegas/disciplinas/DCA3605/files/Simulador/822/CiscoPacketTracer822_amd64_signed.deb"
 )
 
 for url in "${urls[@]}"; do
-file="$(basename "${url%%\?*}")"
+    file="$(basename "${url%%\?*}")"
 
-wget -4 --inet4-only --no-check-certificate --timeout=30 --tries=3 --retry-connrefused \
--O "${file}" "${url}" || continue
+    if [[ "${file}" == "CiscoPacketTracer822_amd64_signed.deb" ]]; then
 
-DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
-DEBIAN_FRONTEND=noninteractive apt install -f -y
+        wget -4 --inet4-only --no-check-certificate \
+            --timeout=30 --tries=3 --retry-connrefused \
+            -O "${file}" "${url}" || continue
 
-rm -f "${file}"
+        mkdir -p /root/.config
+
+        apt install -y \
+            dialog \
+            libxcb-xinerama0-dev \
+            libgl1 \
+            libglx-mesa0 \
+            libopengl0 \
+            libxcb-xinerama0
+
+        echo "PacketTracer_822_amd64 PacketTracer_822_amd64/accept-eula boolean true" \
+            | debconf-set-selections
+
+        DEBIAN_FRONTEND=noninteractive \
+        dpkg -i --ignore-depends=libgl1-mesa-glx "${file}"
+
+    else
+
+        wget -4 --inet4-only \
+            --timeout=30 --tries=3 --retry-connrefused \
+            -O "${file}" "${url}" || continue
+
+        DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
+        DEBIAN_FRONTEND=noninteractive apt install -f -y
+
+    fi
+
+    rm -f "${file}"
 done
 
 github_install_latest_deb() {
