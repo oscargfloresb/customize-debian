@@ -26,6 +26,7 @@ gdm3 \
 gnome-text-editor \
 gnome-console \
 gnome-calculator \
+gnome-software \
 gimp \
 papers \
 loupe \
