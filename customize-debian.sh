@@ -13,6 +13,8 @@ python3 \
 python3-pip \
 python3-venv \
 python3-tk \
+gir1.2-gsound-1.0 \
+gstreamer1.0-opencv \
 build-essential \
 android-sdk-platform-tools \
 zsh \
@@ -31,6 +33,8 @@ papers \
 loupe \
 showtime \
 snapshot
+
+pip3 install librosa --break-system-packages
 
 cd /tmp
 
