@@ -86,6 +86,7 @@ urls=(
     "https://dca.ufrn.br/~viegas/disciplinas/DCA3605/files/Simulador/822/CiscoPacketTracer822_amd64_signed.deb"
     "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pitivi_2023.03-2%2Bgtksink_amd64.deb"
     "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
+    "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pw3270_5.5.0_amd64.deb"
 )
 
 for url in "${urls[@]}"; do
