@@ -347,8 +347,8 @@ usermod -aG dialout oky
 
 pt_check="${pt_pkgname:-packettracer}"
 
-if dpkg-query -W -f='${Status}' "${pt_check}" 2>/dev/null \
-    | grep -q "install ok installed"; then
+if dpkg-query -W -f='${db:Status-Status}' "${pt_check}" 2>/dev/null \
+    | grep -qx "installed"; then
 
     if apt-mark showhold | grep -qx "${pt_check}"; then
         echo "OK: Packet Tracer está instalado y protegido con hold."
