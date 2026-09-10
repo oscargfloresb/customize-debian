@@ -365,3 +365,5 @@ else
     echo "Revisa /var/log/apt/history.log para ver en qué paso se eliminó." >&2
     exit 1
 fi
+
+echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
