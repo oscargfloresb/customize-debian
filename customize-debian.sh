@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /tmp
+
 apt update && apt upgrade -y && apt install -y \
 linux-headers-$(uname -r) \
 firmware-linux \
@@ -35,8 +37,6 @@ showtime \
 snapshot
 
 pip3 install librosa --break-system-packages
-
-cd /tmp
 
 wget -qO- https://dl.google.com/linux/linux_signing_key.pub \
 | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
@@ -81,84 +81,33 @@ virtualbox-7.2 \
 anydesk
 
 urls=(
-    "https://zoom.us/client/latest/zoom_amd64.deb"
-    "https://archive.apache.org/dist/netbeans/netbeans-installers/25/apache-netbeans_25-1_all.deb"
-    "https://dca.ufrn.br/~viegas/disciplinas/DCA3605/files/Simulador/822/CiscoPacketTracer822_amd64_signed.deb"
-    "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pitivi_2023.03-2%2Bgtksink_amd64.deb"
-    "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
-    "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pw3270_5.5.0_amd64.deb"
+"https://zoom.us/client/latest/zoom_amd64.deb"
+"https://github.com/Friends-of-Apache-NetBeans/netbeans-installers/releases/download/nb30-sans/apache-netbeans_30-1_all.deb"
+"https://archive.org/download/cisco-packet-tracer-901-mac-os-64bit/CiscoPacketTracer_901_Ubuntu_64bit.deb"
+"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pitivi_2023.03-2%2Bgtksink_amd64.deb"
+"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
+"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pw3270_5.5.0_amd64.deb"
 )
 
 for url in "${urls[@]}"; do
     file="$(basename "${url%%\?*}")"
 
-    if [[ "${file}" == "CiscoPacketTracer822_amd64_signed.deb" ]]; then
+    wget -4 --inet4-only \
+    --timeout=30 --tries=3 --retry-connrefused \
+    -O "${file}" "${url}" || continue
 
-        if ! wget -4 --inet4-only --no-check-certificate \
-            --timeout=30 --tries=3 --retry-connrefused \
-            -O "${file}" "${url}"; then
-            echo "ERROR: no se pudo descargar Packet Tracer desde ${url}." >&2
-            exit 1
-        fi
+    DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
+    DEBIAN_FRONTEND=noninteractive apt install -f -y
 
-        mkdir -p /root/.config
-
-        apt install -y \
-            dialog \
-            libxcb-xinerama0-dev \
-            libgl1 \
-            libglx-mesa0 \
-            libopengl0 \
-            libxcb-xinerama0
-
-        echo "PacketTracer_822_amd64 PacketTracer_822_amd64/accept-eula boolean true" \
-            | debconf-set-selections
-
-        rm -rf /tmp/packettracer-extract
-        dpkg-deb -R "${file}" /tmp/packettracer-extract
-
-        pt_pkgname="$(dpkg-deb -f "${file}" Package)"
-
-        sed -i 's/libgl1-mesa-glx/libgl1/g' \
-            /tmp/packettracer-extract/DEBIAN/control
-
-        rm -f /tmp/packettracer-fixed.deb
-        dpkg-deb -b /tmp/packettracer-extract /tmp/packettracer-fixed.deb
-
-        DEBIAN_FRONTEND=noninteractive \
-        apt-get install -y /tmp/packettracer-fixed.deb \
-            || { echo "ERROR: apt-get install de Packet Tracer falló." >&2; \
-                 rm -rf /tmp/packettracer-extract /tmp/packettracer-fixed.deb; \
-                 exit 1; }
-
-        rm -rf /tmp/packettracer-extract /tmp/packettracer-fixed.deb
-
-        if dpkg-query -W -f='${Status}' "${pt_pkgname}" 2>/dev/null \
-            | grep -q "install ok installed"; then
-            apt-mark hold "${pt_pkgname}"
-        else
-            echo "ERROR: Packet Tracer no quedó instalado correctamente." >&2
-            echo "Dependencias declaradas por el .deb:" >&2
-            dpkg-deb -f "${file}" Depends >&2
-            exit 1
-        fi
-
-    else
-
-        wget -4 --inet4-only \
-            --timeout=30 --tries=3 --retry-connrefused \
-            -O "${file}" "${url}" || continue
-
-        DEBIAN_FRONTEND=noninteractive dpkg -i "${file}" || \
-        DEBIAN_FRONTEND=noninteractive apt install -f -y
-
+    if [[ "${file}" == CiscoPacketTracer_*_Ubuntu_64bit.deb ]]; then
+        rm -f /usr/share/applications/CiscoPacketTracerPtsa-*.desktop
+        update-desktop-database /usr/share/applications
     fi
 
     rm -f "${file}"
 done
 
 github_install_latest_deb() {
-
     local owner repo match
     local arch url file
 
@@ -211,8 +160,8 @@ github_install_latest_deb() {
 }
 
 github_install_latest_deb \
-    raspberrypi rpi-imager rpi-imager_ \
-    obsidianmd obsidian-releases obsidian
+raspberrypi rpi-imager rpi-imager_ \
+obsidianmd obsidian-releases obsidian
 
 if [[ ! -d /etc/skel/.oh-my-zsh ]]; then
 git clone https://github.com/ohmyzsh/ohmyzsh.git /etc/skel/.oh-my-zsh
@@ -344,26 +293,5 @@ EOF
 usermod -aG sudo oky
 usermod -aG vboxusers oky
 usermod -aG dialout oky
-
-pt_check="${pt_pkgname:-packettracer}"
-
-if dpkg-query -W -f='${db:Status-Status}' "${pt_check}" 2>/dev/null \
-    | grep -qx "installed"; then
-
-    if apt-mark showhold | grep -qx "${pt_check}"; then
-        echo "OK: Packet Tracer está instalado y protegido con hold."
-    else
-        echo "ERROR: Packet Tracer está instalado pero ya NO está en hold." >&2
-        echo "Alguna operación de apt pudo haber tocado el paquete; revisa" >&2
-        echo "/var/log/apt/history.log y vuelve a fijarlo con:" >&2
-        echo "  apt-mark hold ${pt_check}" >&2
-        exit 1
-    fi
-
-else
-    echo "ERROR: Packet Tracer NO está instalado al finalizar el script." >&2
-    echo "Revisa /var/log/apt/history.log para ver en qué paso se eliminó." >&2
-    exit 1
-fi
 
 echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
