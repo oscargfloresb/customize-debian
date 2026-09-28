@@ -2,6 +2,9 @@
 
 cd /tmp
 
+TARGET_USER="oky"
+TARGET_HOME="/home/${TARGET_USER}"
+
 apt update && apt upgrade -y && apt install -y \
 linux-headers-$(uname -r) \
 firmware-linux \
@@ -26,6 +29,9 @@ wget \
 curl \
 git \
 gh \
+jq \
+unzip \
+desktop-file-utils \
 gdm3 \
 gnome-text-editor \
 gnome-console \
@@ -100,8 +106,34 @@ for url in "${urls[@]}"; do
     DEBIAN_FRONTEND=noninteractive apt install -f -y
 
     if [[ "${file}" == CiscoPacketTracer_*_Ubuntu_64bit.deb ]]; then
+        echo "=== Aceptando EULA de Cisco Packet Tracer ==="
+
+        mkdir -p "${TARGET_HOME}/.local/.packettracer"
+
+        cat > "${TARGET_HOME}/.local/.packettracer/eula-Cisco_Packet_Tracer_9.0.1" <<'EOF'
+Cisco Packet Tracer Software License Agreement
+ 
+DOWNLOADING, INSTALLING, OR USING THE CISCO PACKET TRACER SOFTWARE CONSTITUTES ACCEPTANCE OF THE CISCO END USER LICENSE AGREEMENT ("EULA" https://www.cisco.com/c/en/us/about/legal/cloud-and-software/end_user_license_agreement.html) AND THE SUPPLEMENTAL END USER LICENSE AGREEMENT FOR CISCO PACKET TRACER ("SEULA" https://www.cisco.com/c/dam/en_us/about/doing_business/legal/seula/cisco-packet-tracer-software.pdf). IF YOU DO NOT AGREE TO ALL OF THE TERMS OF THE EULA AND SEULA, THEN CISCO SYSTEMS, INC. ("CISCO") IS UNWILLING TO LICENSE THE SOFTWARE TO YOU AND YOU ARE NOT AUTHORIZED TO DOWNLOAD, INSTALL OR USE THE SOFTWARE.
+
+EOF
+
+        chown -R "${TARGET_USER}:${TARGET_USER}" "${TARGET_HOME}/.local/.packettracer"
+
+        echo "EULA aceptado."
+
+        echo "=== Eliminando launcher PTSA ==="
+
         rm -f /usr/share/applications/CiscoPacketTracerPtsa-*.desktop
-        update-desktop-database /usr/share/applications
+
+        rm -f "${TARGET_HOME}/.local/share/applications/"CiscoPacketTracerPtsa-*.desktop
+
+        update-desktop-database /usr/share/applications 2>/dev/null || true
+
+        if [[ -d "${TARGET_HOME}/.local/share/applications" ]]; then
+            update-desktop-database "${TARGET_HOME}/.local/share/applications" 2>/dev/null || true
+        fi
+
+        echo "=== Packet Tracer configurado ==="
     fi
 
     rm -f "${file}"
@@ -114,7 +146,6 @@ github_install_latest_deb() {
     arch="$(dpkg --print-architecture)"
 
     while (( $# >= 3 )); do
-
         owner="$1"
         repo="$2"
         match="$3"
@@ -124,11 +155,13 @@ github_install_latest_deb() {
         echo "Descargando ${owner}/${repo}..."
 
         url=$(
-            curl -fsSL "https://api.github.com/repos/${owner}/${repo}/releases/latest" |
+            curl -fsSL \
+                "https://api.github.com/repos/${owner}/${repo}/releases?per_page=20" |
             jq -r \
                 --arg arch "$arch" \
                 --arg match "$match" '
-                .assets[]
+                .[]
+                | .assets[]
                 | select(
                     (.name | endswith(".deb")) and
                     (.name | contains($match)) and
@@ -139,13 +172,16 @@ github_install_latest_deb() {
                     )
                 )
                 | .browser_download_url
-                ' | head -n1
+                ' |
+            head -n1
         )
 
         if [[ -z "$url" ]]; then
             echo "No se encontró un paquete para ${owner}/${repo}"
             continue
         fi
+
+        echo "URL encontrada: $url"
 
         file="/tmp/$(basename "$url")"
 
@@ -155,7 +191,6 @@ github_install_latest_deb() {
         DEBIAN_FRONTEND=noninteractive apt install -fy
 
         rm -f "$file"
-
     done
 }
 
@@ -295,3 +330,18 @@ usermod -aG vboxusers oky
 usermod -aG dialout oky
 
 echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
+
+echo "=== Corrigiendo permisos del usuario ${TARGET_USER} ==="
+
+mkdir -p \
+    "${TARGET_HOME}/.local/share" \
+    "${TARGET_HOME}/.local/state" \
+    "${TARGET_HOME}/.config" \
+    "${TARGET_HOME}/.cache"
+
+chown -R "${TARGET_USER}:${TARGET_USER}" \
+    "${TARGET_HOME}/.local" \
+    "${TARGET_HOME}/.config" \
+    "${TARGET_HOME}/.cache"
+
+echo "=== Personalización de Debian finalizada ==="
