@@ -11,6 +11,7 @@ firmware-linux \
 sudo \
 mesa-utils \
 net-tools \
+dnsutils \
 libsecret-tools \
 dconf-cli \
 openjdk-21-jdk \
@@ -40,7 +41,8 @@ gimp \
 papers \
 loupe \
 showtime \
-snapshot
+snapshot \
+obs-studio
 
 pip3 install librosa --break-system-packages
 
@@ -93,6 +95,7 @@ urls=(
 "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pitivi_2023.03-2%2Bgtksink_amd64.deb"
 "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/hercules_4.9.1-1_amd64.deb"
 "https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/pw3270_5.5.0_amd64.deb"
+"https://raw.githubusercontent.com/oscargfloresb/customize-debian/refs/heads/main/decibels_48.0-1_amd64.deb"
 )
 
 for url in "${urls[@]}"; do
@@ -138,6 +141,24 @@ EOF
 
     rm -f "${file}"
 done
+
+
+# ============================================================
+# Hercules 4.9.1 - ejecución sin root
+# ============================================================
+
+echo "=== Configurando capacidades de red para Hercules ==="
+
+apt install -y libcap2-bin
+
+setcap cap_net_admin+ep /usr/bin/hercules
+setcap cap_net_admin+ep /usr/bin/hercifc
+
+echo "=== Capacidades configuradas ==="
+
+getcap /usr/bin/hercules
+getcap /usr/bin/hercifc
+
 
 github_install_latest_deb() {
     local owner repo match
@@ -325,9 +346,9 @@ cat > /etc/udisks2/mount_options.conf <<'EOF'
 ntfs_drivers=ntfs
 EOF
 
-usermod -aG sudo oky
-usermod -aG vboxusers oky
-usermod -aG dialout oky
+usermod -aG sudo ${TARGET_USER}
+usermod -aG vboxusers ${TARGET_USER}
+usermod -aG dialout ${TARGET_USER}
 
 echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
 
