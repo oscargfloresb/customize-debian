@@ -2,6 +2,22 @@
 
 cd /tmp
 
+# ============================================================
+# Debian 13 Trixie - habilitar Backports
+# ============================================================
+
+echo "=== Habilitando Debian Trixie Backports ==="
+
+cat > /etc/apt/sources.list.d/trixie-backports.sources <<'EOF'
+Types: deb
+URIs: http://deb.debian.org/debian
+Suites: trixie-backports
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+
+apt update
+
 TARGET_USER="oky"
 TARGET_HOME="/home/${TARGET_USER}"
 
@@ -12,6 +28,9 @@ sudo \
 mesa-utils \
 net-tools \
 dnsutils \
+traceroute \
+whois \
+tcpdump \
 libsecret-tools \
 dconf-cli \
 openjdk-21-jdk \
@@ -346,11 +365,41 @@ cat > /etc/udisks2/mount_options.conf <<'EOF'
 ntfs_drivers=ntfs
 EOF
 
+# ============================================================
+# Waydroid - Android TV 16 VANILLA
+# ============================================================
+
+echo "=== Instalando Waydroid desde Trixie Backports ==="
+
+apt update
+apt install -t trixie-backports -y waydroid
+
+echo "=== Comprobando Waydroid ==="
+
+waydroid --version
+
+echo "=== Inicializando Android TV 16 VANILLA ==="
+
+waydroid session stop || true
+waydroid container stop || true
+
+waydroid init -f \
+  -c https://waydroid-atv.github.io/ota/a16-tv/system \
+  -v https://waydroid-atv.github.io/ota/a16-tv/vendor \
+  -r lineage \
+  -s VANILLA
+
+echo "=== Actualizando Waydroid ==="
+
+waydroid upgrade
+
+echo "=== Estado de Waydroid ==="
+
+waydroid status
+
 usermod -aG sudo ${TARGET_USER}
 usermod -aG vboxusers ${TARGET_USER}
 usermod -aG dialout ${TARGET_USER}
-
-echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
 
 echo "=== Corrigiendo permisos del usuario ${TARGET_USER} ==="
 
@@ -364,5 +413,7 @@ chown -R "${TARGET_USER}:${TARGET_USER}" \
     "${TARGET_HOME}/.local" \
     "${TARGET_HOME}/.config" \
     "${TARGET_HOME}/.cache"
+
+echo "blacklist kvm_intel" | sudo tee /etc/modprobe.d/blacklist-kvm.conf
 
 echo "=== Personalización de Debian finalizada ==="
